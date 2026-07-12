@@ -1,13 +1,16 @@
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useNavigate } from "react-router-dom"; // 1. Importamos o hook de navegação
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Textarea } from "../components/ui/textarea";
 
 // 1. Definimos as regras (Schema) da denúncia
 const denunciaSchema = z.object({
-  titulo: z.string().min(5, "O título precisa ter pelo menos 5 caracteres."),
+  localizacao: z.string().min(5, "A localização precisa ter pelo menos 5 caracteres."),
+  nome: z.string().min(5, "O nome precisa ter pelo menos 5 caracteres."),
+  ocorrencia: z.string().min(5, "O título precisa ter pelo menos 5 caracteres."),
   descricao: z.string().min(20, "Por favor, detalhe mais a situação (mínimo de 20 caracteres)."),
 });
 
@@ -15,15 +18,43 @@ const denunciaSchema = z.object({
 type DenunciaData = z.infer<typeof denunciaSchema>;
 
 export function NovaDenuncia() {
-  // 2. Iniciamos o formulário conectando com o Zod
-  const { register, handleSubmit, formState: { errors } } = useForm<DenunciaData>({
+  // 2. Inicializamos o navegador de rotas
+  const navigate = useNavigate();
+
+  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<DenunciaData>({
     resolver: zodResolver(denunciaSchema),
   });
 
-  // 3. Função que será chamada ao clicar em enviar
-  function enviarDenuncia(data: DenunciaData) {
-    console.log("Dados prontos para o Back-end:", data);
-    alert("Denúncia estruturada com sucesso! (Olhe o console do navegador)");
+  // 3. Função assíncrona para lidar com o envio e o redirecionamento
+  async function enviarDenuncia(data: DenunciaData) {
+    try {
+      // Substitua pela URL real do seu back-end quando ele estiver pronto (Ex: http://localhost:3000/denuncias)
+      const API_URL = "SUA_URL_DO_BACKEND_AQUI"; 
+
+      // Enviando os dados captados para o servidor
+      const response = await fetch(API_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data), // Transforma o objeto do formulário em texto JSON
+      });
+
+      if (!response.ok) {
+        throw new Error("Erro ao salvar a denúncia no servidor.");
+      }
+
+      // Se o back-end salvou com sucesso, redireciona para a tela de obrigado
+      navigate("/obrigado");
+
+    } catch (error) {
+      console.error("Erro na requisição:", error);
+      
+      // MOCK/TESTE: Como seu back-end ainda não está rodando, a requisição acima vai falhar.
+      // Para você conseguir testar o redirecionamento agora, vou deixar este atalho:
+      alert("Obrigado por enviar sua denúncia!");
+      navigate("/obrigado");
+    }
   }
 
   return (
@@ -35,15 +66,35 @@ export function NovaDenuncia() {
         </p>
 
         <form onSubmit={handleSubmit(enviarDenuncia)} className="space-y-4">
-          {/* Campo: Título */}
+          {/* Campo: Nome */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Título resumido</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Nome</label>
+            <Input 
+              placeholder="Escreva seu nome" 
+              {...register("nome")} 
+              className={errors.nome ? "border-red-500" : ""}
+            />
+            {errors.nome && <span className="text-red-500 text-xs mt-1">{errors.nome.message}</span>}
+          </div>
+          {/* Campo: Localização */}
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Onde ocorreu o crime?</label>
+            <Input 
+              placeholder="Ex: Rua X, Bairro Y" 
+              {...register("localizacao")} 
+              className={errors.localizacao ? "border-red-500" : ""}
+            />
+            {errors.localizacao && <span className="text-red-500 text-xs mt-1">{errors.localizacao.message}</span>}
+          </div>
+          {/* Campo: Ocorrência */}
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Qual o ocorrido?</label>
             <Input 
               placeholder="Ex: Poluição sonora na rua X" 
-              {...register("titulo")} 
-              className={errors.titulo ? "border-red-500" : ""}
+              {...register("ocorrencia")} 
+              className={errors.ocorrencia ? "border-red-500" : ""}
             />
-            {errors.titulo && <span className="text-red-500 text-xs mt-1">{errors.titulo.message}</span>}
+            {errors.ocorrencia && <span className="text-red-500 text-xs mt-1">{errors.ocorrencia.message}</span>}
           </div>
 
           {/* Campo: Descrição */}
@@ -57,8 +108,9 @@ export function NovaDenuncia() {
             {errors.descricao && <span className="text-red-500 text-xs mt-1">{errors.descricao.message}</span>}
           </div>
 
-          <Button type="submit" className="w-full mt-4">
-            Enviar Denúncia
+          {/* Adicionamos o 'disabled={isSubmitting}' para evitar que o usuário clique duas vezes enquanto envia */}
+          <Button type="submit" className="w-full mt-4" disabled={isSubmitting}>
+            {isSubmitting ? "Enviando..." : "Enviar Denúncia"}
           </Button>
         </form>
       </div>
