@@ -1,0 +1,21 @@
+// Esse é o seu arquivo schema.prisma completo:
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// 1. Criamos a tabela espelhando os dados do seu formulário do Front-end
+model Denuncia {
+  id          String   @id @default(uuid()) // Gera um ID único automático (ex: DEN-123)
+  data        DateTime @default(now())      // Salva o dia e hora exatos do envio
+  nome        String
+  localizacao String
+  ocorrencia  String
+  descricao   String
+  status      String   @default("Pendente") // Toda denúncia nova nasce como Pendente
+}

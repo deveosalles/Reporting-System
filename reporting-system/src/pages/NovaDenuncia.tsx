@@ -25,35 +25,33 @@ export function NovaDenuncia() {
     resolver: zodResolver(denunciaSchema),
   });
 
-  // 3. Função assíncrona para lidar com o envio e o redirecionamento
+  // 3. Função assíncrona para lidar com o envio e o redirecionamento real
   async function enviarDenuncia(data: DenunciaData) {
     try {
-      // Substitua pela URL real do seu back-end quando ele estiver pronto (Ex: http://localhost:3000/denuncias)
-      const API_URL = "SUA_URL_DO_BACKEND_AQUI"; 
+      // Endereço real do seu servidor Node.js que criamos no passo anterior
+      const API_URL = "http://localhost:3000/denuncias"; 
 
-      // Enviando os dados captados para o servidor
+      // Enviando os dados captados do formulário para o servidor
       const response = await fetch(API_URL, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(data), // Transforma o objeto do formulário em texto JSON
+        body: JSON.stringify(data), // Converte o objeto TypeScript/JavaScript em texto JSON
       });
 
       if (!response.ok) {
-        throw new Error("Erro ao salvar a denúncia no servidor.");
+        throw new Error("Erro ao salvar a denúncia no servidor da PMESP.");
       }
 
-      // Se o back-end salvou com sucesso, redireciona para a tela de obrigado
+      // Se o back-end respondeu com sucesso (Status 201), avançamos para a tela de obrigado
       navigate("/obrigado");
 
     } catch (error) {
       console.error("Erro na requisição:", error);
       
-      // MOCK/TESTE: Como seu back-end ainda não está rodando, a requisição acima vai falhar.
-      // Para você conseguir testar o redirecionamento agora, vou deixar este atalho:
-      alert("Obrigado por enviar sua denúncia!");
-      navigate("/obrigado");
+      // Se o servidor estiver desligado ou a rede falhar, o sistema exibe este alerta amigável
+      alert("Não foi possível enviar a sua denúncia. Verifique se o servidor Back-end está rodando.");
     }
   }
 
